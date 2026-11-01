@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FoodBridge — Rescue Network</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #f5f0e8;
+    --bg2:       #ede8dc;
+    --card:      #faf7f2;
+    --border:    #ddd5c3;
+    --text:      #2a2218;
+    --muted:     #7a6e5f;
+    --accent:    #c8472b;
+    --accent2:   #e8a020;
+    --green:     #3a7a52;
+    --blue:      #2e5fa3;
+    --tag-bg:    #f0e8d8;
+    --shadow:    0 2px 12px rgba(42,34,24,.10);
+    --radius:    12px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0;
+    width: 240px;
+    background: var(--text);
+    display: flex; flex-direction: column;
+    padding: 28px 0 20px;
+    z-index: 100;
+    box-shadow: 4px 0 24px rgba(0,0,0,.18);
+  }
+  .logo {
+    padding: 0 24px 32px;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+  }
+  .logo-mark {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700;
+    color: #fff; letter-spacing: -.3px;
+    display: flex; align-items: center; gap: 9px;
+  }
+  .logo-mark span.dot { color: var(--accent2); }
+  .logo-sub {
+    font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: rgba(255,255,255,.4); margin-top: 3px; padding-left: 33px;
+  }
+  .nav { padding: 20px 12px; flex: 1; }
+  .nav-section { font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(255,255,255,.3); padding: 14px 12px 6px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 11px;
+    padding: 10px 12px; border-radius: 8px; cursor: pointer;
+    color: rgba(255,255,255,.6); font-size: 13.5px; font-weight: 400;
+    transition: all .2s; margin-bottom: 2px; text-decoration: none;
+  }
+  .nav-item:hover, .nav-item.active {
+    background: rgba(255,255,255,.1); color: #fff;
+  }
+  .nav-item.active { background: var(--accent); color: #fff; }
+  .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+  .sidebar-footer {
+    padding: 16px 24px;
+    border-top: 1px solid rgba(255,255,255,.1);
+    font-size: 11px; color: rgba(255,255,255,.3);
+    font-family: 'DM Mono', monospace;
+  }
+  .sidebar-footer strong { color: rgba(255,255,255,.55); display: block; margin-bottom: 2px; }
+
+  /* ── MAIN ── */
+  .main {
+    margin-left: 240px;
+    min-height: 100vh;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .topbar-left h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 21px; font-weight: 600; letter-spacing: -.3px;
+  }
+  .topbar-left p { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .topbar-right { display: flex; gap: 10px; align-items: center; }
+  .btn {
+    padding: 8px 18px; border-radius: 8px; border: none;
+    font-size: 13px; font-family: 'DM Sans', sans-serif; font-weight: 500;
+    cursor: pointer; transition: all .18s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #a83822; transform: translateY(-1px); }
+  .btn-ghost {
+    background: transparent; color: var(--text);
+    border: 1.5px solid var(--border);
+  }
+  .btn-ghost:hover { background: var(--bg2); }
+  .notif-bell {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--bg2); border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    position: relative; transition: background .18s;
+  }
+  .notif-bell:hover { background: var(--border); }
+  .notif-badge {
+    position: absolute; top: 5px; right: 5px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent); border: 1.5px solid var(--card);
+  }
+
+  /* ── CONTENT ── */
+  .content { padding: 28px 32px; }
+
+  /* ── STATS ROW ── */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    position: relative; overflow: hidden;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .stat-card:nth-child(1)::before { background: var(--accent); }
+  .stat-card:nth-child(2)::before { background: var(--green); }
+  .stat-card:nth-child(3)::before { background: var(--blue); }
+  .stat-card:nth-child(4)::before { background: var(--accent2); }
+  .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 8px; }
+  .stat-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 34px; font-weight: 700; line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-sub { font-size: 12px; color: var(--muted); }
+  .stat-sub strong { color: var(--green); }
+  .stat-icon {
+    position: absolute; right: 18px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 38px; opacity: .07;
+  }
+
+  /* ── GRID LAYOUT ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px; }
+
+  /* ── PANEL ── */
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .panel-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .panel-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px; font-weight: 600; letter-spacing: -.2px;
+  }
+  .panel-body { padding: 18px 20px; }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: var(--bg2); }
+  th {
+    text-align: left; padding: 10px 14px;
+    font-size: 10.5px; letter-spacing: 1.2px; text-transform: uppercase;
+    color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 11px 14px; font-size: 13px;
+    border-bottom: 1px solid rgba(0,0,0,.04);
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background .15s; }
+  tbody tr:hover { background: var(--bg2); }
+  .td-name { font-weight: 500; }
+  .td-mono { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  /* ── BADGES ── */
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 9px; border-radius: 20px;
+    font-size: 11px; font-weight: 500; letter-spacing: .3px;
+  }
+  .badge-available { background: #d4edda; color: #1a6335; }
+  .badge-requested { background: #fff3cd; color: #7a5000; }
+  .badge-assigned  { background: #d0e4ff; color: #1a3a80; }
+  .badge-collected { background: #e8e8e8; color: #555; }
+  .badge-expired   { background: #fde8e8; color: #8b1a1a; }
+  .badge-pending   { background: #fff0d4; color: #7a5000; }
+  .badge-approved  { background: #d4f4e2; color: #1a5e36; }
+  .badge-completed { background: #e8e8e8; color: #444; }
+  .badge-scheduled { background: #d0e4ff; color: #1a3a80; }
+
+  /* ── VOLUNTEER CARD ── */
+  .vol-list { display: flex; flex-direction: column; gap: 10px; }
+  .vol-card {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px; border-radius: 9px;
+    background: var(--bg); border: 1px solid var(--border);
+    transition: background .15s;
+  }
+  .vol-card:hover { background: var(--bg2); }
+  .vol-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--text); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .vol-avatar.busy { background: var(--accent); }
+  .vol-avatar.inactive { background: var(--muted); }
+  .vol-info { flex: 1; min-width: 0; }
+  .vol-name { font-weight: 500; font-size: 13px; }
+  .vol-area { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vol-status { font-size: 11px; font-weight: 600; }
+  .status-available { color: var(--green); }
+  .status-busy { color: var(--accent); }
+  .status-inactive { color: var(--muted); }
+
+  /* ── ACTIVITY FEED ── */
+  .feed { display: flex; flex-direction: column; gap: 0; }
+  .feed-item {
+    display: flex; gap: 12px; padding: 12px 0;
+    border-bottom: 1px solid rgba(0,0,0,.05);
+  }
+  .feed-item:last-child { border-bottom: none; }
+  .feed-dot {
+    width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0;
+  }
+  .feed-dot.red { background: var(--accent); }
+  .feed-dot.green { background: var(--green); }
+  .feed-dot.blue { background: var(--blue); }
+  .feed-dot.orange { background: var(--accent2); }
+  .feed-text { font-size: 12.5px; line-height: 1.5; }
+  .feed-time { font-size: 10.5px; color: var(--muted); font-family: 'DM Mono', monospace; margin-top: 2px; }
+
+  /* ── CATEGORY PILLS ── */
+  .cat-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cat-pill {
+    padding: 6px 14px; border-radius: 20px;
+    font-size: 12px; font-weight: 500;
+    background: var(--tag-bg); border: 1px solid var(--border);
+    color: var(--text); display: flex; align-items: center; gap: 6px;
+    transition: all .15s; cursor: default;
+  }
+  .cat-pill:hover { background: var(--border); }
+  .cat-pill span.num {
+    background: var(--text); color: var(--bg);
+    width: 18px; height: 18px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px;
+  }
+
+  /* ── NGO CARDS ── */
+  .ngo-grid { display: flex; flex-direction: column; gap: 10px; }
+  .ngo-card {
+    padding: 13px 15px; border-radius: 9px;
+    background: var(--bg); border: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .ngo-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--green); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .ngo-name { font-weight: 500; font-size: 13px; }
+  .ngo-meta { font-size: 11px; color: var(--muted); }
+  .ngo-requests { margin-left: auto; text-align: right; }
+  .ngo-req-num { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--blue); }
+  .ngo-req-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; }
+
+  /* ── SECTION TABS ── */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+  .tab {
+    padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 500;
+    cursor: pointer; border: 1.5px solid transparent;
+    transition: all .18s; color: var(--muted);
+  }
+  .tab:hover { color: var(--text); background: var(--bg2); }
+  .tab.active {
+    background: var(--text); color: #fff;
+    border-color: var(--text);
+  }
+
+  /* ── SCHEMA SECTION ── */
+  .schema-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+  }
+  .schema-card {
+    border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+    background: var(--card);
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .schema-card:hover {
+    border-color: var(--accent2);
+    box-shadow: 0 0 0 3px rgba(232,160,32,.1);
+  }
+  .schema-table { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; color: var(--accent2); margin-bottom: 6px; }
+  .schema-desc { font-size: 11px; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
+  .schema-fields { display: flex; flex-direction: column; gap: 3px; }
+  .schema-field {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--text);
+    padding: 3px 0; border-bottom: 1px dashed rgba(0,0,0,.07);
+  }
+  .schema-field:last-child { border-bottom: none; }
+  .schema-field .fname { font-family: 'DM Mono', monospace; }
+  .schema-field .ftype { color: var(--muted); }
+  .pk { color: var(--accent) !important; font-weight: 600; }
+
+  /* ── PROC CARDS ── */
+  .proc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .proc-card {
+    border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+    background: var(--card);
+    position: relative; overflow: hidden;
+  }
+  .proc-card::after {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+  .proc-card:nth-child(odd)::after { background: var(--accent); }
+  .proc-card:nth-child(even)::after { background: var(--blue); }
+  .proc-name {
+    font-family: 'DM Mono', monospace; font-size: 12.5px; font-weight: 500;
+    color: var(--text); margin-bottom: 4px;
+  }
+  .proc-type { display: inline-flex; padding: 2px 8px; border-radius: 4px; font-size: 10px; letter-spacing: .5px; font-weight: 600; margin-bottom: 8px; }
+  .proc-type.procedure { background: #fde8e0; color: #c8472b; }
+  .proc-type.function  { background: #d0e8ff; color: #1a3a80; }
+  .proc-type.trigger   { background: #fff0d0; color: #7a5000; }
+  .proc-type.cursor    { background: #e0f0e4; color: #1a5e36; }
+  .proc-desc { font-size: 12px; color: var(--muted); line-height: 1.55; }
+  .proc-params { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px; }
+  .param-tag {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    padding: 2px 8px; border-radius: 4px;
+    background: var(--bg2); color: var(--muted); border: 1px solid var(--border);
+  }
+
+  /* ── FOOTER ── */
+  .page-footer {
+    margin-left: 240px;
+    padding: 16px 32px;
+    border-top: 1px solid var(--border);
+    font-size: 11.5px; color: var(--muted);
+    display: flex; justify-content: space-between;
+    background: var(--card);
+  }
+
+  /* ── PAGE SECTIONS ── */
+  .page-section { display: none; }
+  .page-section.active { display: block; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .anim { animation: fadeUp .35s ease both; }
+  .anim-1 { animation-delay: .05s; }
+  .anim-2 { animation-delay: .10s; }
+  .anim-3 { animation-delay: .15s; }
+  .anim-4 { animation-delay: .20s; }
+  .anim-5 { animation-delay: .25s; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">🍱 FoodBridge<span class="dot">.</span></div>
+    <div class="logo-sub">Rescue Network</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">Overview</div>
+    <a class="nav-item active" onclick="showPage('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <div class="nav-section">Data</div>
+    <a class="nav-item" onclick="showPage('donations')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+      Donations
+    </a>
+    <a class="nav-item" onclick="showPage('ngo')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      NGOs & Pickups
+    </a>
+    <a class="nav-item" onclick="showPage('schema')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+      DB Schema
+    </a>
+    <div class="nav-section">Logic</div>
+    <a class="nav-item" onclick="showPage('procedures')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      Procedures & Logic
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <strong>Oracle DB Project</strong>
+    Food Waste Management System
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 id="page-title">Dashboard</h1>
+      <p id="page-sub">Food rescue operations overview — Patiala, Punjab</p>
+    </div>
+    <div class="topbar-right">
+      <div class="notif-bell" title="Notifications">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <div class="notif-badge"></div>
+      </div>
+      <button class="btn btn-ghost" onclick="showPage('schema')">View Schema</button>
+      <button class="btn btn-primary">+ Add Donation</button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ════════ DASHBOARD PAGE ════════ -->
+    <div id="page-dashboard" class="page-section active">
+
+      <!-- STATS -->
+  <div class="stat-card">
+          <div class="stat-label">Active Donations</div>
+          <div class="stat-value" id="stat-active-donations">6</div>
+          <div class="stat-sub"><strong>+2 today</strong> listed</div>
+          <div class="stat-icon">🍱</div>
+        </div>
+        <div class="stat-card anim anim-2">
+          <div class="stat-label">NGOs Registered</div>
+          <div class="stat-value" id="stat-ngos">3</div>
+          <div class="stat-sub">All <strong>active</strong></div>
+          <div class="stat-icon">🤝</div>
+        </div>
+        <div class="stat-card anim anim-3">
+          <div class="stat-label">Volunteers</div>
+          <div class="stat-value" id="stat-volunteers">4</div>
+          <div class="stat-sub">1 <strong>busy</strong>, 3 available</div>
+          <div class="stat-icon">🚴</div>
+        </div>
+        <div class="stat-card anim anim-4">
+          <div class="stat-label">Pickups Completed</div>
+          <div class="stat-value" id="stat-pickups">1</div>
+          <div class="stat-sub">1 <strong>scheduled</strong></div>
+          <div class="stat-icon">✅</div>
+        </div>
+
+      <!-- ROW 2: Donations table + Volunteers -->
+      <div class="grid-3 anim anim-2">
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Recent Donations</div>
+            <span style="font-size:11px;color:var(--muted)">Food_Donation table</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Food Type</th>
+                  <th>Donor</th>
+                  <th>Qty</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="donations-table-body">
+                <tr><td class="td-mono">5001</td><td class="td-name">Dal Makhani + Rice</td><td>Punjabi Dhaba</td><td>15 kg</td><td><span class="badge badge-available">Available</span></td></tr>
+                <tr><td class="td-mono">5002</td><td class="td-name">Rajma Chawal</td><td>TIET Hostel</td><td>30 kg</td><td><span class="badge badge-available">Available</span></td></tr>
+                <tr><td class="td-mono">5003</td><td class="td-name">Mixed Vegetables</td><td>Sharma Family</td><td>10 kg</td><td><span class="badge badge-available">Available</span></td></tr>
+                <tr><td class="td-mono">5004</td><td class="td-name">Paneer Butter Masala</td><td>City Banquet</td><td>20 kg</td><td><span class="badge badge-available">Available</span></td></tr>
+                <tr><td class="td-mono">5005</td><td class="td-name">Biscuit Packets</td><td>FreshMart</td><td>50 pcs</td><td><span class="badge badge-available">Available</span></td></tr>
+                <tr><td class="td-mono">5006</td><td class="td-name">Chole Bhature</td><td>Punjabi Dhaba</td><td>12 kg</td><td><span class="badge badge-available">Available</span></td></tr>
+                <tr><td class="td-mono">5007</td><td class="td-name">Bread Loaves</td><td>TIET Hostel</td><td>25 pcs</td><td><span class="badge badge-requested">Requested</span></td></tr>
+                <tr><td class="td-mono">5008</td><td class="td-name">Khichdi</td><td>Sharma Family</td><td>18 kg</td><td><span class="badge badge-collected">Collected</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Volunteers</div>
+            <span style="font-size:11px;color:var(--muted)">4 total</span>
+          </div>
+          <div class="panel-body">
+            <div class="vol-list">
+              <div class="vol-card">
+                <div class="vol-avatar busy">A</div>
+                <div class="vol-info">
+                  <div class="vol-name">Arjun Singh</div>
+                  <div class="vol-area">Rajpura Road, Patiala</div>
+                </div>
+                <div class="vol-status status-busy">Busy</div>
+              </div>
+              <div class="vol-card">
+                <div class="vol-avatar">P</div>
+                <div class="vol-info">
+                  <div class="vol-name">Priya Sharma</div>
+                  <div class="vol-area">Model Town, Patiala</div>
+                </div>
+                <div class="vol-status status-available">Available</div>
+              </div>
+              <div class="vol-card">
+                <div class="vol-avatar">R</div>
+                <div class="vol-info">
+                  <div class="vol-name">Rahul Verma</div>
+                  <div class="vol-area">TIET Campus, Patiala</div>
+                </div>
+                <div class="vol-status status-available">Available</div>
+              </div>
+              <div class="vol-card">
+                <div class="vol-avatar">S</div>
+                <div class="vol-info">
+                  <div class="vol-name">Simran Kaur</div>
+                  <div class="vol-area">Civil Lines, Patiala</div>
+                </div>
+                <div class="vol-status status-available">Available</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 3: NGOs + Activity Feed -->
+      <div class="grid-2 anim anim-3">
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Registered NGOs</div>
+            <span style="font-size:11px;color:var(--muted)">NGO table</span>
+          </div>
+          <div class="panel-body">
+            <div class="ngo-grid">
+              <div class="ngo-card">
+                <div class="ngo-icon">🏛️</div>
+                <div>
+                  <div class="ngo-name">Roti Bank Patiala</div>
+                  <div class="ngo-meta">Sadar Bazar · NGO-PB-2021-001</div>
+                </div>
+                <div class="ngo-requests">
+                  <div class="ngo-req-num">1</div>
+                  <div class="ngo-req-label">requests</div>
+                </div>
+              </div>
+              <div class="ngo-card">
+                <div class="ngo-icon" style="background:var(--blue)">🤲</div>
+                <div>
+                  <div class="ngo-name">Hunger Free Punjab</div>
+                  <div class="ngo-meta">Civil Lines · NGO-PB-2020-045</div>
+                </div>
+                <div class="ngo-requests">
+                  <div class="ngo-req-num">1</div>
+                  <div class="ngo-req-label">requests</div>
+                </div>
+              </div>
+              <div class="ngo-card">
+                <div class="ngo-icon" style="background:var(--accent2)">🙏</div>
+                <div>
+                  <div class="ngo-name">Annapurna Seva Trust</div>
+                  <div class="ngo-meta">Tripuri · NGO-PB-2019-112</div>
+                </div>
+                <div class="ngo-requests">
+                  <div class="ngo-req-num">1</div>
+                  <div class="ngo-req-label">requests</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Audit Log / Activity</div>
+            <span style="font-size:11px;color:var(--muted)">Recent events</span>
+          </div>
+          <div class="panel-body">
+            <div class="feed">
+              <div class="feed-item">
+                <div class="feed-dot green"></div>
+                <div>
+                  <div class="feed-text">Pickup #7002 marked <strong>Completed</strong> for Khichdi donation</div>
+                  <div class="feed-time">~20 hrs ago · Volunteer: Priya Sharma</div>
+                </div>
+              </div>
+              <div class="feed-item">
+                <div class="feed-dot blue"></div>
+                <div>
+                  <div class="feed-text">Request #6001 <strong>Approved</strong> by Roti Bank for Bread Loaves</div>
+                  <div class="feed-time">Today · trg_notify_on_approval fired</div>
+                </div>
+              </div>
+              <div class="feed-item">
+                <div class="feed-dot orange"></div>
+                <div>
+                  <div class="feed-text">Pickup #7001 scheduled for Bread Loaves</div>
+                  <div class="feed-time">Today · Arjun Singh assigned (now Busy)</div>
+                </div>
+              </div>
+              <div class="feed-item">
+                <div class="feed-dot red"></div>
+                <div>
+                  <div class="feed-text">Donation #5007 status changed: Available → Requested</div>
+                  <div class="feed-time">Today · trg_audit_donation_status logged</div>
+                </div>
+              </div>
+              <div class="feed-item">
+                <div class="feed-dot green"></div>
+                <div>
+                  <div class="feed-text">5 donors and 3 NGOs registered via Register_Donor / Register_NGO</div>
+                  <div class="feed-time">Initial seed · insert_data.sql</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Food Categories -->
+      <div class="panel anim anim-4">
+        <div class="panel-head">
+          <div class="panel-title">Food Categories</div>
+          <span style="font-size:11px;color:var(--muted)">Food_Category table — 5 categories</span>
+        </div>
+        <div class="panel-body">
+          <div class="cat-grid">
+            <div class="cat-pill">🍛 Cooked Food <span class="num">3</span></div>
+            <div class="cat-pill">🥦 Raw Vegetables <span class="num">1</span></div>
+            <div class="cat-pill">📦 Packaged Food <span class="num">1</span></div>
+            <div class="cat-pill">🍞 Bakery Items <span class="num">1</span></div>
+            <div class="cat-pill">🥛 Dairy Products <span class="num">0</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ════════ DONATIONS PAGE ════════ -->
+    <div id="page-donations" class="page-section">
+      <div class="tabs">
+        <div class="tab active">All Donations</div>
+        <div class="tab">Requests</div>
+        <div class="tab">Pickups</div>
+        <div class="tab">Donors</div>
+      </div>
+
+      <div class="panel anim">
+        <div class="panel-head">
+          <div class="panel-title">Food_Donation — All Records</div>
+          <div style="display:flex;gap:8px">
+            <span style="font-size:11px;color:var(--muted);padding:4px 0">8 rows · seq_donation starts at 5001</span>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Donation_ID</th><th>Donor</th><th>Category</th><th>Food_Type</th><th>Quantity</th><th>Unit</th><th>Expiry</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="td-mono">5001</td><td>Punjabi Dhaba Patiala</td><td>Cooked Food</td><td class="td-name">Dal Makhani + Rice</td><td>15</td><td>kg</td><td class="td-mono">+6h</td><td><span class="badge badge-available">Available</span></td></tr>
+              <tr><td class="td-mono">5002</td><td>TIET Hostel Mess</td><td>Cooked Food</td><td class="td-name">Rajma Chawal</td><td>30</td><td>kg</td><td class="td-mono">+4h</td><td><span class="badge badge-available">Available</span></td></tr>
+              <tr><td class="td-mono">5003</td><td>Sharma Family</td><td>Raw Vegetables</td><td class="td-name">Mixed Vegetables</td><td>10</td><td>kg</td><td class="td-mono">+24h</td><td><span class="badge badge-available">Available</span></td></tr>
+              <tr><td class="td-mono">5004</td><td>City Wedding Banquet</td><td>Cooked Food</td><td class="td-name">Paneer Butter Masala</td><td>20</td><td>kg</td><td class="td-mono">+3h</td><td><span class="badge badge-available">Available</span></td></tr>
+              <tr><td class="td-mono">5005</td><td>FreshMart Superstore</td><td>Packaged Food</td><td class="td-name">Biscuit Packets</td><td>50</td><td>packets</td><td class="td-mono">+72h</td><td><span class="badge badge-available">Available</span></td></tr>
+              <tr><td class="td-mono">5006</td><td>Punjabi Dhaba Patiala</td><td>Cooked Food</td><td class="td-name">Chole Bhature</td><td>12</td><td>kg</td><td class="td-mono">+5h</td><td><span class="badge badge-available">Available</span></td></tr>
+              <tr><td class="td-mono">5007</td><td>TIET Hostel Mess</td><td>Bakery Items</td><td class="td-name">Bread Loaves</td><td>25</td><td>packets</td><td class="td-mono">+12h</td><td><span class="badge badge-requested">Requested</span></td></tr>
+              <tr><td class="td-mono">5008</td><td>Sharma Family</td><td>Cooked Food</td><td class="td-name">Khichdi</td><td>18</td><td>kg</td><td class="td-mono">+2h</td><td><span class="badge badge-collected">Collected</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="margin-top:20px" class="grid-2 anim">
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Donation_Request</div><span style="font-size:11px;color:var(--muted)">3 records</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Req_ID</th><th>Donation</th><th>NGO</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td class="td-mono">6001</td><td>5007 – Bread Loaves</td><td>Roti Bank</td><td><span class="badge badge-approved">Approved</span></td></tr>
+                <tr><td class="td-mono">6002</td><td>5003 – Vegetables</td><td>Hunger Free Punjab</td><td><span class="badge badge-pending">Pending</span></td></tr>
+                <tr><td class="td-mono">6003</td><td>5008 – Khichdi</td><td>Annapurna Seva</td><td><span class="badge badge-completed">Completed</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Pickup</div><span style="font-size:11px;color:var(--muted)">2 records</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Pickup_ID</th><th>Request</th><th>Volunteer</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td class="td-mono">7001</td><td>6001</td><td>Arjun Singh</td><td><span class="badge badge-scheduled">Scheduled</span></td></tr>
+                <tr><td class="td-mono">7002</td><td>6003</td><td>Priya Sharma</td><td><span class="badge badge-completed">Completed</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════ NGO PAGE ════════ -->
+    <div id="page-ngo" class="page-section">
+      <div class="grid-2 anim">
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">NGO Registry</div><span style="font-size:11px;color:var(--muted)">NGO table</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>NGO_ID</th><th>Name</th><th>Location</th><th>License</th><th>Active</th></tr></thead>
+              <tbody>
+                <tr><td class="td-mono">2001</td><td class="td-name">Roti Bank Patiala</td><td>Sadar Bazar</td><td class="td-mono">NGO-PB-2021-001</td><td><span class="badge badge-available">Y</span></td></tr>
+                <tr><td class="td-mono">2002</td><td class="td-name">Hunger Free Punjab</td><td>Civil Lines</td><td class="td-mono">NGO-PB-2020-045</td><td><span class="badge badge-available">Y</span></td></tr>
+                <tr><td class="td-mono">2003</td><td class="td-name">Annapurna Seva Trust</td><td>Tripuri</td><td class="td-mono">NGO-PB-2019-112</td><td><span class="badge badge-available">Y</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Donor Registry</div><span style="font-size:11px;color:var(--muted)">Donor table</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Active</th></tr></thead>
+              <tbody>
+                <tr><td class="td-mono">1001</td><td class="td-name">Punjabi Dhaba Patiala</td><td>Restaurant</td><td><span class="badge badge-available">Y</span></td></tr>
+                <tr><td class="td-mono">1002</td><td class="td-name">TIET Hostel Mess</td><td>Hostel</td><td><span class="badge badge-available">Y</span></td></tr>
+                <tr><td class="td-mono">1003</td><td class="td-name">Sharma Family</td><td>Household</td><td><span class="badge badge-available">Y</span></td></tr>
+                <tr><td class="td-mono">1004</td><td class="td-name">City Wedding Banquet</td><td>Event</td><td><span class="badge badge-available">Y</span></td></tr>
+                <tr><td class="td-mono">1005</td><td class="td-name">FreshMart Superstore</td><td>Other</td><td><span class="badge badge-available">Y</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel anim" style="margin-top:0">
+        <div class="panel-head"><div class="panel-title">Volunteer Activity (Cursor Report)</div><span style="font-size:11px;color:var(--muted)">Volunteer_Activity_Report cursor</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Vol_ID</th><th>Name</th><th>Contact</th><th>Area Covered</th><th>Availability</th><th>Pickups</th></tr></thead>
+            <tbody>
+              <tr><td class="td-mono">3001</td><td class="td-name">Arjun Singh</td><td class="td-mono">9444555666</td><td>Rajpura Road, Patiala</td><td><span style="color:var(--accent);font-weight:500">Busy</span></td><td>1</td></tr>
+              <tr><td class="td-mono">3002</td><td class="td-name">Priya Sharma</td><td class="td-mono">9555666777</td><td>Model Town, Patiala</td><td><span style="color:var(--green);font-weight:500">Available</span></td><td>1</td></tr>
+              <tr><td class="td-mono">3003</td><td class="td-name">Rahul Verma</td><td class="td-mono">9666777888</td><td>TIET Campus, Patiala</td><td><span style="color:var(--green);font-weight:500">Available</span></td><td>0</td></tr>
+              <tr><td class="td-mono">3004</td><td class="td-name">Simran Kaur</td><td class="td-mono">9777888999</td><td>Civil Lines, Patiala</td><td><span style="color:var(--green);font-weight:500">Available</span></td><td>0</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════ SCHEMA PAGE ════════ -->
+    <div id="page-schema" class="page-section">
+      <div style="margin-bottom:16px">
+        <p style="font-size:13px;color:var(--muted);line-height:1.7">
+          Oracle DB schema — 10 tables, 10 sequences. Files: <code style="font-family:'DM Mono',monospace;background:var(--bg2);padding:1px 6px;border-radius:4px;font-size:11px">sequence.sql</code> → <code style="font-family:'DM Mono',monospace;background:var(--bg2);padding:1px 6px;border-radius:4px;font-size:11px">tables.sql</code> → <code style="font-family:'DM Mono',monospace;background:var(--bg2);padding:1px 6px;border-radius:4px;font-size:11px">insert_data.sql</code>
+        </p>
+      </div>
+
+      <div class="schema-grid anim">
+        <div class="schema-card">
+          <div class="schema-table">Admin</div>
+          <div class="schema-desc">System administrators with login credentials.</div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="fname pk">Admin_ID</span><span class="ftype">NUMBER PK</span></div>
+            <div class="schema-field"><span class="fname">Name</span><span class="ftype">VARCHAR2(100)</span></div>
+            <div class="schema-field"><span class="fname">Email</span><span class="ftype">UNIQUE</span></div>
+            <div class="schema-field"><span class="fname">Password</span><span class="ftype">VARCHAR2(255)</span></div>
+            <div class="schema-field"><span class="fname">Created_At</span><span class="ftype">DATE</span></div>
+          </div>
+        </div>
+
+        <div class="schema-card">
+          <div class="schema-table">Donor</div>
+          <div class="schema-desc">Food donors: restaurants, hostels, households, events.</div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="fname pk">Donor_ID</span><span class="ftype">NUMBER PK</span></div>
+            <div class="schema-field"><span class="fname">Name, Contact</span><span class="ftype">NOT NULL</span></div>
+            <div class="schema-field"><span class="fname">Email</span><span class="ftype">UNIQUE</span></div>
+            <div class="schema-field"><span class="fname">Type</span><span class="ftype">CHECK enum</span></div>
+            <div class="schema-field"><span class="fname">Is_Active</span><span class="ftype">CHAR(1) Y/N</span></div>
+          </div>
+        </div>
+
+        <div class="schema-card">
+          <div class="schema-table">NGO</div>
+          <div class="schema-desc">Registered NGOs that request and collect food.</div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="fname pk">NGO_ID</span><span class="ftype">NUMBER PK</span></div>
+            <div class="schema-field"><span class="fname">Name, Contact</span><span class="ftype">NOT NULL</span></div>
+            <div class="schema-field"><span class="fname">License_No</span><span class="ftype">UNIQUE</span></div>
+            <div class="schema-field"><span class="fname">Location</span><span class="ftype">VARCHAR2(255)</span></div>
+            <div class="schema-field"><span class="fname">Is_Active</span><span class="ftype">CHAR(1) Y/N</span></div>
+          </div>
+        </div>
+
+        <div class="schema-card">
+          <div class="schema-table">Volunteer</div>
+          <div class="schema-desc">Delivery volunteers assigned to pickups.</div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="fname pk">Volunteer_ID</span><span class="ftype">NUMBER PK</span></div>
+            <div class="schema-field"><span class="fname">Area_Covered</span><span class="ftype">VARCHAR2(100)</span></div>
+            <div class="schema-field"><span class="fname">Availability</span><span class="ftype">Available/Busy/Inactive</span></div>
+            <div class="schema-field"><span class="fname">Joined_Date</span><span class="ftype">DATE</span></div>
+          </div>
+        </div>
+
+        <div class="schema-card">
+          <div class="schema-table">Food_Category</div>
+          <div class="schema-desc">Classification of food types donated.</div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="fname pk">Category_ID</span><span class="ftype">NUMBER PK</span></div>
+            <div class="schema-field"><span class="fname">Category_Name</span><span class="ftype">UNIQUE</span></div>
+            <div class="schema-field"><span class="fname">Description</span><span class="ftype">VARCHAR2(200)</span></div>
+          </div>
+        </div>
+
+        <div class="schema-card">
+          <div class="schema-table">Food_Donation</div>
+          <div class="schema-desc">Core donation records with expiry tracking.</div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="fname pk">Donation_ID</span><span class="ftype">NUMBER PK</span></div>
+            <div class="schema-field"><span class="fname">Donor_ID</span><span class="ftype">FK → Donor</span></div>
+            <div class="schema-field"><span class="fname">Expiry_Time</span><span class="ftype">TIMESTAMP</span></div>
+            <div class="schema-field"><span class="fname">Status</span><span class="ftype">CHECK 6 vals</span></div>
+            <div class="schema-field"><span class="fname">Unit</span><span class="ftype">kg/litres/packets…</span></div>
+          </div>
+        </div>
+
+        <div class="schema-card">
+          <div class="schema-table">Donation_Request</div>
+          <div class="schema-desc">NGO requests for specific donations.</div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="fname pk">Request_ID</span><span class="ftype">NUMBER PK</span></div>
+            <div class="schema-field"><span class="fname">Donation_ID</span><span class="ftype">FK → Food_Donation</span></div>
+            <div class="schema-field"><span class="fname">NGO_ID</span><span class="ftype">FK → NGO</span></div>
+            <div class="schema-field"><span class="fname">Status</span><span class="ftype">Pending/Approved…</span></div>
+          </div>
+        </div>
+
+        <div class="schema-card">
+          <div class="schema-table">Pickup</div>
+          <div class="schema-desc">Volunteer-assigned pickup scheduling.</div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="fname pk">Pickup_ID</span><span class="ftype">NUMBER PK</span></div>
+            <div class="schema-field"><span class="fname">Request_ID</span><span class="ftype">FK → Donation_Request</span></div>
+            <div class="schema-field"><span class="fname">Volunteer_ID</span><span class="ftype">FK → Volunteer</span></div>
+            <div class="schema-field"><span class="fname">Actual_Pickup</span><span class="ftype">TIMESTAMP</span></div>
+          </div>
+        </div>
+
+        <div class="schema-card">
+          <div class="schema-table">Notification</div>
+          <div class="schema-desc">System notifications for all user types.</div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="fname pk">Notif_ID</span><span class="ftype">NUMBER PK</span></div>
+            <div class="schema-field"><span class="fname">User_Type</span><span class="ftype">Admin/Donor/NGO/Vol</span></div>
+            <div class="schema-field"><span class="fname">Is_Read</span><span class="ftype">CHAR(1) Y/N</span></div>
+            <div class="schema-field"><span class="fname">Message</span><span class="ftype">VARCHAR2(500)</span></div>
+          </div>
+        </div>
+
+        <div class="schema-card">
+          <div class="schema-table">Audit_Log</div>
+          <div class="schema-desc">Tracks all INSERT/UPDATE/DELETE operations.</div>
+          <div class="schema-fields">
+            <div class="schema-field"><span class="fname pk">Log_ID</span><span class="ftype">NUMBER PK</span></div>
+            <div class="schema-field"><span class="fname">Table_Name</span><span class="ftype">VARCHAR2(50)</span></div>
+            <div class="schema-field"><span class="fname">Old_Status</span><span class="ftype">VARCHAR2(50)</span></div>
+            <div class="schema-field"><span class="fname">New_Status</span><span class="ftype">VARCHAR2(50)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════ PROCEDURES PAGE ════════ -->
+    <div id="page-procedures" class="page-section">
+      <div style="margin-bottom:18px">
+        <p style="font-size:13px;color:var(--muted);line-height:1.7">
+          PL/SQL objects defined across <code style="font-family:'DM Mono',monospace;background:var(--bg2);padding:1px 6px;border-radius:4px;font-size:11px">procedures.sql</code>, <code style="font-family:'DM Mono',monospace;background:var(--bg2);padding:1px 6px;border-radius:4px;font-size:11px">functions.sql</code>, <code style="font-family:'DM Mono',monospace;background:var(--bg2);padding:1px 6px;border-radius:4px;font-size:11px">triggers.sql</code>, <code style="font-family:'DM Mono',monospace;background:var(--bg2);padding:1px 6px;border-radius:4px;font-size:11px">cursors.sql</code>, <code style="font-family:'DM Mono',monospace;background:var(--bg2);padding:1px 6px;border-radius:4px;font-size:11px">views.sql</code>.
+        </p>
+      </div>
+
+      <div style="margin-bottom:8px;font-family:'Playfair Display',serif;font-size:16px;font-weight:600">Stored Procedures</div>
+      <div class="proc-grid anim">
+        <div class="proc-card">
+          <div class="proc-name">Register_Donor</div>
+          <div><span class="proc-type procedure">PROCEDURE</span></div>
+          <div class="proc-desc">Registers a new donor using seq_donor.NEXTVAL. Handles duplicate email via DUP_VAL_ON_INDEX exception.</div>
+          <div class="proc-params">
+            <span class="param-tag">p_name IN</span><span class="param-tag">p_contact IN</span><span class="param-tag">p_email IN</span><span class="param-tag">p_donor_id OUT</span>
+          </div>
+        </div>
+        <div class="proc-card">
+          <div class="proc-name">Register_NGO</div>
+          <div><span class="proc-type procedure">PROCEDURE</span></div>
+          <div class="proc-desc">Registers NGO with unique license number. ROLLBACK on duplicate email or license.</div>
+          <div class="proc-params">
+            <span class="param-tag">p_name IN</span><span class="param-tag">p_license IN</span><span class="param-tag">p_ngo_id OUT</span>
+          </div>
+        </div>
+        <div class="proc-card">
+          <div class="proc-name">Add_Donation</div>
+          <div><span class="proc-type procedure">PROCEDURE</span></div>
+          <div class="proc-desc">Inserts a new food donation. Computes Expiry_Time using NUMTODSINTERVAL on p_expiry_hrs.</div>
+          <div class="proc-params">
+            <span class="param-tag">p_donor_id IN</span><span class="param-tag">p_expiry_hrs IN</span><span class="param-tag">p_donation_id OUT</span>
+          </div>
+        </div>
+        <div class="proc-card">
+          <div class="proc-name">Request_Pickup</div>
+          <div><span class="proc-type procedure">PROCEDURE</span></div>
+          <div class="proc-desc">Creates a Donation_Request and immediately updates Food_Donation status to 'Requested'.</div>
+          <div class="proc-params">
+            <span class="param-tag">p_donation_id IN</span><span class="param-tag">p_ngo_id IN</span><span class="param-tag">p_request_id OUT</span>
+          </div>
+        </div>
+        <div class="proc-card">
+          <div class="proc-name">Assign_Volunteer</div>
+          <div><span class="proc-type procedure">PROCEDURE</span></div>
+          <div class="proc-desc">Inserts Pickup record and sets volunteer Availability to 'Busy' in the same transaction.</div>
+          <div class="proc-params">
+            <span class="param-tag">p_request_id IN</span><span class="param-tag">p_volunteer_id IN</span><span class="param-tag">p_pickup_id OUT</span>
+          </div>
+        </div>
+        <div class="proc-card">
+          <div class="proc-name">Complete_Pickup</div>
+          <div><span class="proc-type procedure">PROCEDURE</span></div>
+          <div class="proc-desc">Sets Pickup status to 'Completed' and stamps Actual_Pickup with SYSTIMESTAMP.</div>
+          <div class="proc-params">
+            <span class="param-tag">p_pickup_id IN</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin:22px 0 8px;font-family:'Playfair Display',serif;font-size:16px;font-weight:600">Functions</div>
+      <div class="proc-grid anim">
+        <div class="proc-card">
+          <div class="proc-name">Check_Expiry</div>
+          <div><span class="proc-type function">FUNCTION</span></div>
+          <div class="proc-desc">Returns hours remaining until donation expiry. Returns -1 if not found, -99 on error.</div>
+          <div class="proc-params"><span class="param-tag">p_donation_id IN</span><span class="param-tag">RETURN NUMBER</span></div>
+        </div>
+        <div class="proc-card">
+          <div class="proc-name">Total_Donations_By_Donor</div>
+          <div><span class="proc-type function">FUNCTION</span></div>
+          <div class="proc-desc">COUNT(*) of all donations made by a given Donor_ID.</div>
+          <div class="proc-params"><span class="param-tag">p_donor_id IN</span><span class="param-tag">RETURN NUMBER</span></div>
+        </div>
+        <div class="proc-card">
+          <div class="proc-name">Available_Food_Count</div>
+          <div><span class="proc-type function">FUNCTION</span></div>
+          <div class="proc-desc">Returns count of all donations with Status='Available' and non-expired Expiry_Time.</div>
+          <div class="proc-params"><span class="param-tag">no params</span><span class="param-tag">RETURN NUMBER</span></div>
+        </div>
+        <div class="proc-card">
+          <div class="proc-name">Get_NGO_Request_Count</div>
+          <div><span class="proc-type function">FUNCTION</span></div>
+          <div class="proc-desc">Returns total number of requests submitted by a specific NGO.</div>
+          <div class="proc-params"><span class="param-tag">p_ngo_id IN</span><span class="param-tag">RETURN NUMBER</span></div>
+        </div>
+      </div>
+
+      <div style="margin:22px 0 8px;font-family:'Playfair Display',serif;font-size:16px;font-weight:600">Triggers</div>
+      <div class="proc-grid anim">
+        <div class="proc-card">
+          <div class="proc-name">trg_expire_donation</div>
+          <div><span class="proc-type trigger">TRIGGER</span></div>
+          <div class="proc-desc">BEFORE INSERT OR UPDATE — auto-sets Status to 'Expired' if Expiry_Time is past.</div>
+          <div class="proc-params"><span class="param-tag">ON Food_Donation</span><span class="param-tag">FOR EACH ROW</span></div>
+        </div>
+        <div class="proc-card">
+          <div class="proc-name">trg_check_quantity</div>
+          <div><span class="proc-type trigger">TRIGGER</span></div>
+          <div class="proc-desc">BEFORE INSERT/UPDATE — raises error -20010 if Quantity ≤ 0.</div>
+          <div class="proc-params"><span class="param-tag">ON Food_Donation</span><span class="param-tag">RAISE_APPLICATION_ERROR</span></div>
+        </div>
+        <div class="proc-card">
+          <div class="proc-name">trg_notify_on_approval</div>
+          <div><span class="proc-type trigger">TRIGGER</span></div>
+          <div class="proc-desc">AFTER UPDATE of Status='Approved' — inserts Notification for the NGO.</div>
+          <div class="proc-params"><span class="param-tag">ON Donation_Request</span><span class="param-tag">WHEN NEW.Status='Approved'</span></div>
+        </div>
+        <div class="proc-card">
+          <div class="proc-name">trg_audit_donation_status</div>
+          <div><span class="proc-type trigger">TRIGGER</span></div>
+          <div class="proc-desc">AFTER UPDATE of Status — logs old/new status to Audit_Log when status changes.</div>
+          <div class="proc-params"><span class="param-tag">ON Food_Donation</span><span class="param-tag">seq_log.NEXTVAL</span></div>
+        </div>
+        <div class="proc-card">
+          <div class="proc-name">trg_prevent_active_delete</div>
+          <div><span class="proc-type trigger">TRIGGER</span></div>
+          <div class="proc-desc">BEFORE DELETE — blocks deletion of donations in 'Requested' or 'Assigned' status.</div>
+          <div class="proc-params"><span class="param-tag">ON Food_Donation</span><span class="param-tag">-20011 error</span></div>
+        </div>
+        <div class="proc-card">
+          <div class="proc-name">trg_notify_volunteer</div>
+          <div><span class="proc-type trigger">TRIGGER</span></div>
+          <div class="proc-desc">AFTER INSERT on Pickup — sends 'Pickup Assigned' notification to the volunteer.</div>
+          <div class="proc-params"><span class="param-tag">ON Pickup</span><span class="param-tag">WHEN Volunteer_ID IS NOT NULL</span></div>
+        </div>
+      </div>
+
+      <div style="margin:22px 0 8px;font-family:'Playfair Display',serif;font-size:16px;font-weight:600">Cursor-Based Reports</div>
+      <div class="proc-grid anim">
+        <div class="proc-card">
+          <div class="proc-name">Monthly_Donation_Report</div>
+          <div><span class="proc-type cursor">CURSOR</span></div>
+          <div class="proc-desc">Explicit cursor. Loops all donations for a given month/year, prints donor name, food, quantity, status.</div>
+          <div class="proc-params"><span class="param-tag">p_month IN</span><span class="param-tag">p_year IN</span></div>
+        </div>
+        <div class="proc-card">
+          <div class="proc-name">NGO_Request_History</div>
+          <div><span class="proc-type cursor">CURSOR</span></div>
+          <div class="proc-desc">FOR-loop cursor. Lists all requests by NGO ordered by Request_Date DESC.</div>
+          <div class="proc-params"><span class="param-tag">p_ngo_id IN</span></div>
+        </div>
+        <div class="proc-card">
+          <div class="proc-name">Expiring_Soon_Report</div>
+          <div><span class="proc-type cursor">CURSOR</span></div>
+          <div class="proc-desc">FOR-loop cursor. Lists available donations expiring within p_hours (default 6).</div>
+          <div class="proc-params"><span class="param-tag">p_hours IN DEFAULT 6</span></div>
+        </div>
+        <div class="proc-card">
+          <div class="proc-name">Volunteer_Activity_Report</div>
+          <div><span class="proc-type cursor">CURSOR</span></div>
+          <div class="proc-desc">LEFT JOIN cursor. Counts total pickups per volunteer, ordered by most active.</div>
+          <div class="proc-params"><span class="param-tag">no params</span></div>
+        </div>
+      </div>
+
+      <div style="margin:22px 0 8px;font-family:'Playfair Display',serif;font-size:16px;font-weight:600">Views</div>
+      <div class="proc-grid anim">
+        <div class="proc-card">
+          <div class="proc-name">Active_Donations_View</div>
+          <div><span class="proc-type function">VIEW</span></div>
+          <div class="proc-desc">Joins Food_Donation + Donor. Filters Status='Available' and Expiry_Time > SYSTIMESTAMP.</div>
+          <div class="proc-params"><span class="param-tag">Donation_ID</span><span class="param-tag">Donor_Name</span><span class="param-tag">Expiry_Time</span></div>
+        </div>
+        <div class="proc-card">
+          <div class="proc-name">NGO_Pickup_Summary</div>
+          <div><span class="proc-type function">VIEW</span></div>
+          <div class="proc-desc">LEFT JOIN NGO + Donation_Request. Groups by NGO to show total requests count.</div>
+          <div class="proc-params"><span class="param-tag">NGO_ID</span><span class="param-tag">NGO_Name</span><span class="param-tag">Total_Requests</span></div>
+        </div>
+        <div class="proc-card">
+          <div class="proc-name">Donor_Contribution_View</div>
+          <div><span class="proc-type function">VIEW</span></div>
+          <div class="proc-desc">LEFT JOIN Donor + Food_Donation. Aggregates Total_Donations per donor.</div>
+          <div class="proc-params"><span class="param-tag">Donor_ID</span><span class="param-tag">Name</span><span class="param-tag">Total_Donations</span></div>
+        </div>
+        <div class="proc-card">
+          <div class="proc-name">Full_Pickup_Details_View</div>
+          <div><span class="proc-type function">VIEW</span></div>
+          <div class="proc-desc">5-table join: Pickup → Request → Donation → Donor + NGO + Volunteer. Complete end-to-end view.</div>
+          <div class="proc-params"><span class="param-tag">Donor_Name</span><span class="param-tag">NGO_Name</span><span class="param-tag">Volunteer_Name</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<footer class="page-footer">
+  <span>Food Waste Management System — Oracle Database Project</span>
+  <span style="font-family:'DM Mono',monospace">10 tables · 10 sequences · 6 procedures · 4 functions · 6 triggers · 4 cursors · 5 views</span>
+</footer>
+
+<script>
+  const pages = {
+    dashboard:  { title: 'Dashboard',       sub: 'Food rescue operations overview — Patiala, Punjab' },
+    donations:  { title: 'Donations',        sub: 'Food_Donation, Donation_Request, Pickup tables' },
+    ngo:        { title: 'NGOs & Pickups',   sub: 'NGO, Donor, Volunteer registry' },
+    schema:     { title: 'DB Schema',        sub: 'Oracle table definitions — tables.sql + sequence.sql' },
+    procedures: { title: 'Procedures & Logic', sub: 'Stored procedures, functions, triggers, cursors, views' },
+  };
+
+  function showPage(id) {
+    document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+    document.getElementById('page-' + id).classList.add('active');
+    event.currentTarget.classList.add('active');
+
+    document.getElementById('page-title').textContent = pages[id].title;
+    document.getElementById('page-sub').textContent   = pages[id].sub;
+  }
+</script>
+<script>
+    async function loadDashboardData() {
+      try {
+        const response = await fetch('http://127.0.0.1:5000/api/dashboard');
+        if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+        const data = await response.json();
+
+        // 1. Update card numbers
+        const statDonations = document.getElementById('stat-active-donations');
+        const statNGOs = document.getElementById('stat-ngos');
+        const statVolunteers = document.getElementById('stat-volunteers');
+        const statPickups = document.getElementById('stat-pickups');
+
+        if (statDonations) statDonations.textContent = data.stats.active_donations;
+        if (statNGOs) statNGOs.textContent = data.stats.ngos;
+        if (statVolunteers) statVolunteers.textContent = data.stats.volunteers;
+        if (statPickups) statPickups.textContent = data.stats.completed_pickups;
+
+        // 2. Populate donations table
+        const tbody = document.getElementById('donations-table-body');
+        if (tbody && data.donations) {
+          tbody.innerHTML = '';
+          data.donations.forEach(item => {
+            const tr = document.createElement('tr');
+            const badgeClass = `badge-${(item.status || 'available').toLowerCase()}`;
+            tr.innerHTML = `
+              <td class="td-mono">${item.donation_id}</td>
+              <td class="td-name">${item.food_type}</td>
+              <td>${item.donor_name || 'N/A'}</td>
+              <td>${item.quantity} ${item.unit || 'kg'}</td>
+              <td><span class="badge ${badgeClass}">${item.status}</span></td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch dashboard data:', err);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadDashboardData);
+  </script>
+
+</body>
+</html>
